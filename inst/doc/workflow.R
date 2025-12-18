@@ -1,0 +1,62 @@
+## ----setup, include=FALSE-----------------------------------------------------
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(richCluster)
+library(dplyr)
+library(tidyr)
+
+## ----load-cluster-data--------------------------------------------------------
+load_cluster_data <- function(from_scratch=FALSE) {
+  if (!from_scratch) {
+    cluster_result <- readRDS(system.file("extdata", "cluster_result.rds", package = "richCluster"))
+  } else {
+    rr1 <- read.delim(system.file("extdata", "HF36wk_vs_HF12wk.txt", package="richCluster"))
+    rr2 <- read.delim(system.file("extdata", "HF36wk_vs_WT12wk.txt", package="richCluster"))
+    
+    enrichment_results <- list(rr1, rr2)
+    rr_names <- c('hf36_vs_hf12', 'wt36_vs_wt12')
+    
+    cluster_result <- richCluster::cluster(
+      enrichment_results, df_names = rr_names, min_terms = 3, min_value=0.0001,
+      distance_metric = "kappa", distance_cutoff = 0.5,
+      linkage_method = "average", linkage_cutoff = 0.5
+    )
+  }
+  return(cluster_result)
+}
+
+cluster_result <- load_cluster_data(from_scratch = FALSE)
+
+## ----cluster-hmap-------------------------------------------------------------
+c_hmap <- cluster_hmap(cluster_result)
+c_hmap
+
+## ----cluster-bar--------------------------------------------------------------
+c_bar <- cluster_bar(cluster_result)
+c_bar
+
+## ----cluster-dot--------------------------------------------------------------
+c_dot <- cluster_dot(cluster_result)
+c_dot
+
+## ----term-hmap----------------------------------------------------------------
+clusters <- c("blood vessel development", "response to lipoprotein particle", "positive regulation of cell death")
+terms <- c("myelination", "lipid oxidation")
+
+t_hmap <- term_hmap(cluster_result, clusters, terms, value_type = "Padj")
+t_hmap
+
+## ----term-bar-----------------------------------------------------------------
+t_bar <- term_bar(cluster_result, 1)
+t_bar
+
+## ----term-dot-----------------------------------------------------------------
+t_dot <- term_dot(cluster_result, 1)
+t_dot
+
+## ----export-cluster-df--------------------------------------------------------
+cluster_df <- export_df(cluster_result)
+head(cluster_df)
+
