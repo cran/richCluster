@@ -4,18 +4,47 @@
 \alias{merge_enrichment_results}
 \title{Merge List of Enrichment Results}
 \usage{
-merge_enrichment_results(enrichment_results)
+merge_enrichment_results(enrichment_results, gene_delim = ",")
 }
 \arguments{
-\item{enrichment_results}{A list of geneset dataframes containing columns c('Term', 'GeneID', 'Pvalue', 'Padj')}
+\item{enrichment_results}{A list of geneset dataframes containing columns c('Term', 'GeneID', 'Pvalue', 'Padj').
+A list of length 1 is supported and returns the same merged columns as a
+longer list, row-ordered by 'Term'.}
+
+\item{gene_delim}{A single non-empty string separating gene identifiers
+within the 'GeneID' column. Must match the delimiter the caller's
+data actually uses: the merge splits on it and re-joins on it, so a
+mismatch fabricates identifiers that appear in no input. Defaults to
+",", which reproduces the pre-parameter behaviour exactly.}
 }
 \value{
 A single merged geneset dataframe with all original columns
-        suffixed with the index of the geneset, with new columns 'GeneID', 'Pvalue',
-        'Padj' containing the merged values.
+suffixed with the index of the geneset, with new columns 'GeneID', 'Pvalue',
+'Padj' containing the merged values, and a trailing integer column
+'DatasetCount' giving the number of input datasets that reported each term.
 }
 \description{
 This function merges multiple enrichment results ('enrichment_results') into a single dataframe by
 combining unique GeneID elements across each geneset, and averaging Pvalue / Padj
 values for each term across all enrichment_results.
+}
+\details{
+Each gene identifier appears at most once per term, ordered by first
+appearance across the contributing genesets.
+
+A missing (\code{NA}) or empty gene list is treated as the EMPTY SET: the
+term is similar to nothing, so it joins no cluster and \code{min_terms}
+drops it. No row is removed from the caller's data and no count changes.
+A classed warning (\code{richCluster_empty_gene_list}) names how many terms
+were affected, so the exclusion is never silent.
+}
+\examples{
+\donttest{
+d1 <- utils::read.delim(system.file("extdata", "HF36wk_vs_HF12wk.txt",
+                                     package = "richCluster"))
+d2 <- utils::read.delim(system.file("extdata", "HF36wk_vs_WT12wk.txt",
+                                     package = "richCluster"))
+merged <- merge_enrichment_results(list(d1, d2))
+head(merged[, c("Term", "Pvalue", "Padj", "DatasetCount")])
+}
 }

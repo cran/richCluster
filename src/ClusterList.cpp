@@ -9,6 +9,7 @@
 #include <Rcpp.h>
 #include "StringUtils.h"
 #include "ClusterList.h"
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -17,11 +18,23 @@ Rcpp::DataFrame ClusterList::export_r() const {
   std::vector<std::string> termNamesColumn;
   std::vector<int> clusterColumn;
   
+  // C9 (converge ledger, 2026-09-04): emit in a CONTENT-DEFINED order.  The
+  // std::list order is the merge sequence; ordering the export by the member
+  // sets themselves (std::set::operator< is lexicographic over ascending
+  // members, so "smallest member first", full set as the tie-break) makes the
+  // cluster numbering a function of the result alone -- identical on every
+  // platform and for every permutation of the input.
+  std::vector<const Cluster*> ordered;
+  ordered.reserve(clusterList.size());
+  for (const auto& c : clusterList) ordered.push_back(&c);
+  std::stable_sort(ordered.begin(), ordered.end(),
+                   [](const Cluster* a, const Cluster* b) { return *a < *b; });
+
   int n = 1;
-  // iterate through ClusterList and convert to vectors
-  for (const auto& clusterGroup : clusterList) {
-    // turn the ints into a string
-    std::string termIndicesString = StringUtils::unorderedSetToString(clusterGroup, ", ");
+  for (const Cluster* cp : ordered) {
+    const Cluster& clusterGroup = *cp;
+    // members are already ascending (std::set) -- canonical term order
+    std::string termIndicesString = StringUtils::setToString(clusterGroup, ", ");
     termIndicesColumn.push_back(termIndicesString); // append to termIndices
      
     std::vector<std::string> clusterGroupTerms;

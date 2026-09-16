@@ -16,7 +16,7 @@ cluster_correlation_hmap(
 
 \item{distance_matrix}{A matrix representing the distances between terms.}
 
-\item{cluster_number}{An integer specifying the cluster number to visualize.}
+\item{cluster_number}{An integer cluster id, as found in \code{final_clusters$Cluster}.}
 
 \item{merged_df}{A dataframe with all terms used to map term indices to names.}
 }
@@ -25,4 +25,15 @@ An interactive heatmaply heatmap.
 }
 \description{
 This function generates a correlation heatmap for a specific cluster based on the provided distance matrix.
+}
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+chmap <- cluster_correlation_hmap(cluster_result$final_clusters,
+                                  cluster_result$distance_matrix,
+                                  cluster_number = 1,
+                                  cluster_result$merged_df)
+chmap
+}
 }

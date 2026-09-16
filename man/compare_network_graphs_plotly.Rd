@@ -9,7 +9,7 @@ compare_network_graphs_plotly(cluster_result, cluster_num, pval_names)
 \arguments{
 \item{cluster_result}{The result from the clustering function.}
 
-\item{cluster_num}{The cluster number to plot.}
+\item{cluster_num}{The cluster number to plot, as found in \code{cluster_result$cluster_df$Cluster}.}
 
 \item{pval_names}{A list of p-value names to compare.}
 }
@@ -19,4 +19,13 @@ A plotly object.
 \description{
 This function creates a side-by-side comparison of network graphs for a single
 cluster using different p-value types.
+}
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+g <- compare_network_graphs_plotly(cluster_result, cluster_num = 1,
+                                   c("Padj_1", "Padj_2"))
+g
+}
 }

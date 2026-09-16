@@ -12,7 +12,10 @@ cluster(
   distance_metric = "kappa",
   distance_cutoff = 0.5,
   linkage_method = "average",
-  linkage_cutoff = 0.5
+  linkage_cutoff = 0.5,
+  filter_on = "Padj",
+  gene_delim = ",",
+  verbose = FALSE
 )
 }
 \arguments{
@@ -20,32 +23,117 @@ cluster(
 Each dataframe should include at least the columns 'Term', 'GeneID', and 'Padj'.}
 
 \item{df_names}{Optional, a character vector of names for the enrichment result dataframes. Must
-match the length of `enrichment_results`. Default is `NULL`.}
+match the length of \code{enrichment_results}. Default is \code{NULL}.}
 
 \item{min_terms}{Minimum number of terms each final cluster must include}
 
-\item{min_value}{Minimum 'Pvalue' a term must have in order to be counted in final clustering}
+\item{min_value}{Upper bound on the significance value: a term is kept when
+its \code{filter_on} column is strictly LESS than \code{min_value}. Despite the
+name this is a maximum, not a minimum; the name is retained from 1.0.2
+so that existing calls keep working. Default is \code{0.1}.}
 
-\item{distance_metric}{A string specifying the distance metric to use (e.g., "kappa").}
+\item{distance_metric}{A string specifying the distance metric to use.
+Supported options are "kappa", "jaccard", and "dice".}
 
-\item{distance_cutoff}{A numeric value for the distance cutoff (0 < cutoff <= 1).}
+\item{distance_cutoff}{A numeric value for the distance cutoff (0 < cutoff <= 1).
+The comparison is STRICT: two terms are linked when their similarity
+is greater than \code{distance_cutoff}, not when it equals it.}
 
 \item{linkage_method}{A string specifying the linkage method to use
 (e.g., "average"). Supported options are "single", "complete",
 "average", and "ward".}
 
-\item{linkage_cutoff}{A numeric value between 0 and 1 for the membership cutoff.}
+\item{linkage_cutoff}{A numeric value between 0 and 1 for the membership cutoff.
+The comparison is STRICT: clusters merge when their linkage score is
+greater than \code{linkage_cutoff}, not when it equals it.}
+
+\item{filter_on}{Name of the column terms are selected on, compared against
+\code{min_value}. Default is \code{"Padj"}; \code{"Pvalue"} reproduces 1.0.2
+behaviour. When the named column is absent but 'Pvalue' is present,
+\code{cluster()} warns (condition class
+\code{richCluster_filter_on_fallback}) and falls back to 'Pvalue' rather
+than erroring.}
+
+\item{gene_delim}{A single string separating gene identifiers within the
+'GeneID' column. Default is \code{","}, which reproduces 1.0.2 behaviour
+exactly. Set it when your gene lists use another separator (for
+example \code{";"}); it is applied both to the per-term gene split and to
+the distinct-gene universe count, which must agree.}
+
+\item{verbose}{Logical; print the C++ core's progress narration to the
+console. Default \code{FALSE} --- the core runs silent. Before 2.0.0 this
+narration was unconditional and could not be switched off, and it
+scales with the data (one line per merge iteration), so it is now
+opt-in.}
 }
 \value{
-A named list containing:
-        - `distance_matrix`: The distance matrix used in clustering.
-        - `clusters`: The final clusters.
-        - `df_list`: The original list of enrichment result dataframes.
-        - `merged_df`: The merged dataframe containing combined results.
-        - `cluster_options`: A list of clustering parameters used in the analysis.
-        - `df_names` (optional): The names of the input dataframes if provided.
+A named list of eight elements, in this order:
+\describe{
+\item{distance_matrix}{A numeric \code{n x n} matrix of pairwise SIMILARITY
+scores between the \code{n} terms that survived the \code{min_value}
+filter. Values lie on [0, 1] and LARGER means MORE similar; the diagonal
+is 1. For \code{"kappa"}, a negative value is set to 0, so the matrix
+holds a non-negative kappa similarity rather than an unmodified Cohen's
+kappa. Row and column names are the terms, in \code{merged_df} row order.
+Despite the element name it holds similarities, not distances; the name is
+retained so that existing code keeps working.}
+\item{all_clusters}{A data frame of every merged cluster, BEFORE the
+\code{min_terms} filter, with three columns: \code{Cluster} (integer
+cluster ID), \code{TermNames} (the cluster's term names, comma-separated)
+and \code{TermIndices} (the same terms as ZERO-based row indices into
+\code{merged_df}, comma-separated).}
+\item{df_list}{The \code{enrichment_results} argument, unmodified.}
+\item{merged_df}{The merged and filtered data frame the clustering ran on:
+one row per surviving term, carrying \code{Term}, the per-dataset columns
+suffixed \code{_1}, \code{_2}, ... , and the pooled \code{GeneID},
+\code{Pvalue}, \code{Padj} and \code{DatasetCount} columns. Its row
+order is the index basis of \code{TermIndices}.}
+\item{cluster_options}{A named list of the parameters clustering ran with:
+\code{min_terms}, \code{min_value}, \code{distance_metric},
+\code{distance_cutoff}, \code{linkage_method}, \code{linkage_cutoff} and
+\code{filter_on}.}
+\item{df_names}{A character vector naming the input data frames. Always
+present: when \code{df_names} is \code{NULL} or does not match the length
+of \code{enrichment_results} it is replaced with \code{"1"},
+\code{"2"}, ... .}
+\item{final_clusters}{\code{all_clusters} with clusters of fewer than
+\code{min_terms} terms dropped and \code{Cluster} renumbered 1..k. TWO
+columns only --- \code{Cluster} and \code{TermIndices}; \code{TermNames}
+is not carried over.}
+\item{cluster_df}{The main output, and the frame the plotting functions
+(\code{cluster_hmap()}, \code{cluster_dot()}, \code{cluster_bar()},
+\code{cluster_network()}) consume: one row per (cluster, term) pair, being
+a \code{Cluster} column followed by that term's row from
+\code{merged_df}.}
+}
 }
 \description{
 This function performs clustering on enrichment results by integrating
 gene similarity scores and various clustering strategies.
+}
+\section{Determinism}{
+
+Clustering results depend only on the terms and gene sets supplied, not on
+the order in which rows are given: \code{cluster()} and
+\code{runRichCluster()} canonicalise row order internally, so re-sorting the
+input cannot change cluster membership. Note that the merge stage is a greedy
+agglomeration --- clusters are built by repeatedly merging the best-scoring
+available pair --- so results reflect that greedy strategy rather than a
+global optimum, and small changes to \code{linkage_cutoff} can change
+membership substantially.
+}
+
+\examples{
+\donttest{
+# A small two-dataset input.  The shipped data is far larger, and an example
+# that runs during R CMD check should stay quick.
+terms <- sprintf("TERM_\%02d", 1:12)
+genes <- vapply(1:12, function(i) paste0("G", i:(i + 4), collapse = ","),
+                character(1))
+d1 <- data.frame(Term = terms, GeneID = genes,
+                 Pvalue = 1e-5, Padj = 1e-4, stringsAsFactors = FALSE)
+d2 <- d1
+res <- cluster(list(d1, d2), min_terms = 2, distance_metric = "kappa")
+head(res$cluster_df[, c("Cluster", "Term")])
+}
 }

@@ -9,11 +9,18 @@
 #define ClusterList_h
 
 #include <list>
-#include <unordered_set>
+#include <set>
+#include <string>
+#include <vector>
 
 class ClusterList{
 public:
-  using Cluster = std::unordered_set<int>;
+  // C9 (converge ledger, 2026-09-04): std::set, NOT std::unordered_set.  A
+  // std::set iterates in ascending order on every standard library, so seed
+  // growth, linkage summation, merge choice and export no longer depend on the
+  // hash-set traversal that differs between libc++ (macOS) and libstdc++
+  // (Linux, mingw).  LinkageMethod::Cluster must stay the same type.
+  using Cluster = std::set<int>;
   using ClusterIt = std::list<Cluster>::iterator;
   
   ClusterList(std::vector<std::string>& terms): terms(terms) {};
@@ -31,7 +38,7 @@ public:
   
 private:
   std::vector<std::string> terms;
-  std::list<std::unordered_set<int>> clusterList;
+  std::list<Cluster> clusterList;
 };
 
 #endif /* ClusterList_h */

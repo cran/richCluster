@@ -10,7 +10,9 @@ runRichCluster(
   distanceMetric,
   distanceCutoff,
   linkageMethod,
-  linkageCutoff
+  linkageCutoff,
+  geneDelim = ",",
+  verbose = FALSE
 )
 }
 \arguments{
@@ -25,15 +27,63 @@ runRichCluster(
 \item{linkageMethod}{e.g. "average"}
 
 \item{linkageCutoff}{numeric between 0 and 1}
+
+\item{geneDelim}{single string separating gene identifiers within \code{geneIDs}.
+Default \code{","}.}
+
+\item{verbose}{Logical; print the C++ core's progress narration to the
+console. Default \code{FALSE} --- the core runs silent. Before 2.0.0 this
+narration was unconditional and could not be switched off, and it
+scales with the data (one line per merge iteration), so it is now
+opt-in.}
 }
 \value{
-A list containing the clustering results with the following components:
+A list of two elements:
 \describe{
-  \item{distance_matrix}{A numeric matrix containing pairwise distances between terms based on gene similarity}
-  \item{all_clusters}{A data frame with columns 'Cluster' (cluster ID) and 'TermIndices' (comma-separated indices of terms in each cluster)}
-  \item{linkage_tree}{The hierarchical clustering dendrogram structure from the agglomerative clustering process}
+\item{distance_matrix}{A numeric \code{n x n} matrix of pairwise SIMILARITY
+scores between the \code{n} input terms. Values lie on [0, 1] and LARGER
+means MORE similar; the diagonal is 1, the self-similarity every supported
+metric agrees on. For \code{"kappa"}, a negative value is set to 0, so the
+matrix holds a non-negative kappa similarity rather than an unmodified
+Cohen's kappa. Row and column names are \code{terms}, in the caller's
+input order. Despite the element name it holds similarities, not
+distances; the name is retained so that existing code keeps working.
+Linkage converts internally with \code{d = 1 - similarity}.}
+\item{all_clusters}{A data frame of every merged cluster, with three
+columns: \code{Cluster} (integer cluster ID), \code{TermNames} (the
+cluster's term names, comma-separated) and \code{TermIndices} (the same
+terms as ZERO-based indices into \code{terms}, comma-separated).}
 }
 }
 \description{
 Run clustering in C++ backend
+}
+\details{
+A missing (\code{NA}) or empty gene list is treated as the EMPTY SET: the
+term is similar to nothing, so it joins no cluster and \code{min_terms}
+drops it. No row is removed from the caller's data and no count changes.
+A classed warning (\code{richCluster_empty_gene_list}) names how many terms
+were affected, so the exclusion is never silent.
+}
+\section{Determinism}{
+
+Clustering results depend only on the terms and gene sets supplied, not on
+the order in which rows are given: \code{cluster()} and
+\code{runRichCluster()} canonicalise row order internally, so re-sorting the
+input cannot change cluster membership. Note that the merge stage is a greedy
+agglomeration --- clusters are built by repeatedly merging the best-scoring
+available pair --- so results reflect that greedy strategy rather than a
+global optimum, and small changes to \code{linkage_cutoff} can change
+membership substantially.
+}
+
+\examples{
+\donttest{
+res <- runRichCluster(
+  terms = c("T1", "T2", "T3"),
+  geneIDs = c("a,b,c", "b,c,d", "x,y,z"),
+  distanceMetric = "kappa", distanceCutoff = 0.5,
+  linkageMethod = "average", linkageCutoff = 0.5)
+res$distance_matrix
+}
 }

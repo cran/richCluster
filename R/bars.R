@@ -35,14 +35,10 @@ cluster_bar <- function(cluster_result, clusters=NULL, value_type="Padj", title=
     mutate(across(starts_with(paste0(value_type, "_")), function(x) -log10(x))) %>%
     mutate(across(starts_with(paste0(value_type, "_")), function(x) ifelse(is.infinite(x), 0, x)))
 
-  # representative term making
-  # use the Pvalue/Padj average column
-  representative_terms <- cluster_df %>%
-    group_by(Cluster) %>%
-    filter(value_type==min(value_type, na.rm=TRUE)) %>%
-    slice(1) %>%
-    ungroup %>%
-    pull(Term)
+  # representative term making: minimum of the merged value_type column.
+  # DS-06 (SPEC-RC-010): the old dplyr filter compared the argument string to
+  # itself and was a no-op.
+  representative_terms <- unname(get_representative_terms(cluster_df, value_type))
 
   bar_data$Cluster <- representative_terms
 
@@ -89,7 +85,10 @@ cluster_bar <- function(cluster_result, clusters=NULL, value_type="Padj", title=
 #' in a selected cluster.
 #'
 #' @param cluster_result A result list returned by \code{\link{cluster}}.
-#' @param cluster Cluster ID (numeric) or term name (character) to visualize.
+#' @param cluster A single cluster ID (numeric) or term name (character) to visualize.
+#'   A numeric ID must appear in `cluster_df$Cluster`. A term name must belong to
+#'   exactly one cluster; a term shared by several clusters is ambiguous here and is
+#'   rejected, naming the clusters it belongs to so one can be passed instead.
 #' @param value_type The column name to use for enrichment significance ("Padj" or "Pvalue").
 #' @param title Optional plot title. If NULL, a default will be generated.
 #'
@@ -111,10 +110,34 @@ term_bar <- function(cluster_result, cluster=1, value_type="Padj", title=NULL) {
 
   # get cluster # from the term
   if (is.character(cluster)) {
-    cluster <- cluster_df[cluster_df$Term==cluster, ]$Cluster
+    # DS-13 (SPEC-RC-011): $Cluster on a multi-row subset returns a VECTOR, and
+    # the filter() below then recycled element-wise instead of selecting one
+    # cluster.  Measured on the shipped example object (2026-08-28): 53 of 298
+    # terms sit in 2+ clusters -- "anatomical structure morphogenesis" is in
+    # both 25 and 30 -- so this was reached by roughly one term in six.  The
+    # function plots a single cluster, so an ambiguous term is refused by name.
+    matched <- unique(cluster_df$Cluster[cluster_df$Term == cluster])
+    if (length(matched) == 0) {
+      stop(sprintf("term \"%s\" is not in any cluster", cluster))
+    }
+    if (length(matched) > 1) {
+      stop(sprintf(
+        "term \"%s\" is in %d clusters (%s); pass one of those cluster numbers as `cluster` instead",
+        cluster, length(matched), paste(sort(matched), collapse = ", ")))
+    }
+    cluster <- matched
   } else if (!is.numeric(cluster)) {
     stop("cluster must be numeric (a cluster number) or character (a term name)")
   }
+
+  # A length > 1 id recycles in filter() exactly as the term path used to.
+  if (length(cluster) != 1) {
+    stop("`cluster` must be a single cluster number or term name")
+  }
+  # DS-15 (SPEC-RC-011): an unknown id used to draw a silently empty bar plot.
+  # The sibling surfaces cluster_network() / cluster_correlation_hmap() already
+  # guard this (DS-05, SPEC-RC-010).
+  validate_cluster_ids(cluster, cluster_df$Cluster, "cluster")
 
   # bar data
   bar_data <- cluster_df %>%
@@ -124,14 +147,10 @@ term_bar <- function(cluster_result, cluster=1, value_type="Padj", title=NULL) {
     mutate(across(starts_with(paste0(value_type, "_")), function(x) -log10(x))) %>%
     mutate(across(starts_with(paste0(value_type, "_")), function(x) ifelse(is.infinite(x), 0, x)))
 
-  # representative term making
-  # use the Pvalue/Padj average column
-  representative_term <- bar_data %>%
-    group_by(Cluster) %>%
-    filter(value_type==min(value_type, na.rm=TRUE)) %>%
-    slice(1) %>%
-    ungroup %>%
-    pull(Term)
+  # representative term making: minimum of the merged value_type column.
+  # DS-06 (SPEC-RC-010): the old dplyr filter compared the argument string to
+  # itself and was a no-op. The frame here is already a single cluster.
+  representative_term <- unname(get_representative_terms(bar_data, value_type))
 
   # use it in the default title (if none supplied)
   if (is.null(title)) {

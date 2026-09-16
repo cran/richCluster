@@ -10,18 +10,32 @@
 #include <sstream>
 #include <vector>
 #include <unordered_set>
+#include <set>
 #include <string>
 #include <regex>
+
+// DS-01 / DS-02: normalise one raw span into a gene token.
+// Trims leading/trailing ASCII whitespace; callers drop tokens that are empty
+// after trimming, so "" , "g1,g2," , ",x,y,z" and "g1, g2" all tokenise cleanly.
+static std::string trimToken(const std::string& s) {
+  const char* ws = " \t\r\n";
+  const std::size_t b = s.find_first_not_of(ws);
+  if (b == std::string::npos) return std::string();
+  const std::size_t e = s.find_last_not_of(ws);
+  return s.substr(b, e - b + 1);
+}
 
 // split a string into a vector using a string delimiter
 std::vector<std::string> StringUtils::splitStringToVector(const std::string& input, const std::string& delimiter) {
   std::vector<std::string> result;
   size_t start = 0, end = 0;
   while ((end = input.find(delimiter, start)) != std::string::npos) {
-    result.push_back(input.substr(start, end - start));
+    std::string token = trimToken(input.substr(start, end - start));
+    if (!token.empty()) result.push_back(token);   // DS-01: drop empty tokens
     start = end + delimiter.length();
   }
-  result.push_back(input.substr(start));  // Add the last token
+  std::string token = trimToken(input.substr(start));  // the last token
+  if (!token.empty()) result.push_back(token);         // DS-01: drop empty tokens
   return result;
 } 
 
@@ -30,10 +44,12 @@ std::unordered_set<std::string> StringUtils::splitStringToUnorderedSet(const std
   std::unordered_set<std::string> result;
   size_t start = 0, end = 0;
   while ((end = input.find(delimiter, start)) != std::string::npos) {
-    result.insert(input.substr(start, end - start));
+    std::string token = trimToken(input.substr(start, end - start));
+    if (!token.empty()) result.insert(token);      // DS-01: drop empty tokens
     start = end + delimiter.length();
-  } 
-  result.insert(input.substr(start));  // Add the last token
+  }
+  std::string token = trimToken(input.substr(start));  // the last token
+  if (!token.empty()) result.insert(token);            // DS-01: drop empty tokens
   return result;
 } 
 
@@ -78,6 +94,18 @@ std::string StringUtils::vectorToString(const std::vector<std::string>& vector, 
   return oss.str();
 } 
 
+// C9: std::set<int> -> "a, b, c" in ascending order (the canonical export form)
+std::string StringUtils::setToString(const std::set<int>& set, const std::string& delimiter) {
+  std::ostringstream oss;
+  bool first = true;
+  for (int v : set) {
+    if (!first) oss << delimiter;
+    oss << v;
+    first = false;
+  }
+  return oss.str();
+}
+
 // template method for std::unordered_set<T>, outputs as string with a string delimiter
 // use cases: int, string
 template <typename T>
@@ -99,16 +127,19 @@ std::string StringUtils::unorderedSetToString(const std::unordered_set<T>& set, 
 //
 // eg: input vector contains ["hi,how,are,you", "hi,hi,today"]
 // output: 5 unique elements
-int StringUtils::countUniqueElements(const std::vector<std::string>& stringifiedVector) {
+int StringUtils::countUniqueElements(const std::vector<std::string>& stringifiedVector,
+                                     const std::string& delimiter) {
   std::unordered_set<std::string> uniqueElements;
-   
+
   // for each value in the input vector (like iterating through rows in a column)
   for (const std::string& elementString : stringifiedVector) {
-    std::unordered_set<std::string> currentElements = StringUtils::splitStringToUnorderedSet(elementString, ",");
+    std::unordered_set<std::string> currentElements = StringUtils::splitStringToUnorderedSet(elementString, delimiter);
      
     // for each indiv element in the string (ex: "hi,how,are,you")
     for (const std::string& element : currentElements) {
-      uniqueElements.insert(element); // Yay sets!
+      // DS-01 belt-and-braces: the tokeniser no longer emits empty tokens,
+      // but never let one into the gene universe regardless.
+      if (!element.empty()) uniqueElements.insert(element);
     } 
   }
   return uniqueElements.size(); // return number of unique elements

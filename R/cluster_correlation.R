@@ -7,16 +7,34 @@ NULL
 #'
 #' @param final_clusters A dataframe containing the final cluster data.
 #' @param distance_matrix A matrix representing the distances between terms.
-#' @param cluster_number An integer specifying the cluster number to visualize.
+#' @param cluster_number An integer cluster id, as found in `final_clusters$Cluster`.
 #' @param merged_df A dataframe with all terms used to map term indices to names.
 #' @return An interactive heatmaply heatmap.
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' chmap <- cluster_correlation_hmap(cluster_result$final_clusters,
+#'                                   cluster_result$distance_matrix,
+#'                                   cluster_number = 1,
+#'                                   cluster_result$merged_df)
+#' chmap
+#' }
 #' @export
 cluster_correlation_hmap <- function(final_clusters, distance_matrix, cluster_number, merged_df) {
   #TODO: Be able to see what genes are involved
   #TODO: Update tooltip
 
-  # Extract and process ClusterIndices
-  term_indices <- as.numeric(unlist(strsplit(final_clusters$TermIndices[cluster_number], ", ")))
+  # Extract and process ClusterIndices.
+  # DS-05 (SPEC-RC-010): select the cluster by ID, never by row position.
+  row_idx <- which(final_clusters$Cluster == cluster_number)
+  if (length(row_idx) != 1) {
+    stop(sprintf(
+      "cluster_number %s does not match any cluster id in final_clusters$Cluster (valid ids: %s)",
+      as.character(cluster_number),
+      paste(final_clusters$Cluster, collapse = ", ")))
+  }
+  term_indices <- as.numeric(unlist(strsplit(final_clusters$TermIndices[row_idx], ", ")))
 
   # Create an empty matrix for the cluster
   cluster_matrix <- matrix(0, nrow = length(term_indices), ncol = length(term_indices))
@@ -26,11 +44,10 @@ cluster_correlation_hmap <- function(final_clusters, distance_matrix, cluster_nu
     term_i <- term_indices[i] + 1  # Adjust for 1-based indexing
     for (j in seq_along(term_indices)) {
       term_j <- term_indices[j] + 1  # Adjust for 1-based indexing
-      kappa <- distance_matrix[term_i, term_j]
-      if (kappa == -99) {
-        kappa <- 1
-      }
-      cluster_matrix[i, j] <- kappa
+      # SPEC-RC-007 / REQ-007-4: the sentinel-to-one patch that stood here is
+      # gone. The exported diagonal IS 1 since T1-07, so the special case is
+      # dead code, and leaving it is a stale-sentinel trap for the next reader.
+      cluster_matrix[i, j] <- distance_matrix[term_i, term_j]
     }
   }
 
@@ -68,17 +85,35 @@ cluster_correlation_hmap <- function(final_clusters, distance_matrix, cluster_nu
 #'
 #' @param final_clusters A dataframe containing the final cluster data.
 #' @param distance_matrix A matrix representing the distances between terms.
-#' @param cluster_number An integer specifying the cluster number to visualize.
+#' @param cluster_number An integer cluster id, as found in `final_clusters$Cluster`.
 #' @param merged_df A dataframe with all terms used to map term indices to names.
 #' @return An interactive networkD3 network graph.
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' net <- cluster_network(cluster_result$final_clusters,
+#'                        cluster_result$distance_matrix,
+#'                        cluster_number = 1,
+#'                        cluster_result$merged_df)
+#' net
+#' }
 #' @export
 cluster_network <- function(final_clusters, distance_matrix, cluster_number, merged_df) {
   # view a network graph of all terms in a single cluster
   # opacity + length of edge corresponds to kappa score
   #TODO: double check does higher=shorter+darker?
 
-  # Extract and process ClusterIndices
-  term_indices <- as.numeric(unlist(strsplit(final_clusters$TermIndices[cluster_number], ", ")))
+  # Extract and process ClusterIndices.
+  # DS-05 (SPEC-RC-010): select the cluster by ID, never by row position.
+  row_idx <- which(final_clusters$Cluster == cluster_number)
+  if (length(row_idx) != 1) {
+    stop(sprintf(
+      "cluster_number %s does not match any cluster id in final_clusters$Cluster (valid ids: %s)",
+      as.character(cluster_number),
+      paste(final_clusters$Cluster, collapse = ", ")))
+  }
+  term_indices <- as.numeric(unlist(strsplit(final_clusters$TermIndices[row_idx], ", ")))
 
   # Create an empty matrix for the cluster
   cluster_matrix <- matrix(0, nrow = length(term_indices), ncol = length(term_indices))
@@ -88,11 +123,10 @@ cluster_network <- function(final_clusters, distance_matrix, cluster_number, mer
     term_i <- term_indices[i] + 1  # Adjust for 1-based indexing
     for (j in seq_along(term_indices)) {
       term_j <- term_indices[j] + 1  # Adjust for 1-based indexing
-      kappa <- distance_matrix[term_i, term_j]
-      if (kappa == -99) {
-        kappa <- 1
-      }
-      cluster_matrix[i, j] <- kappa
+      # SPEC-RC-007 / REQ-007-4: the sentinel-to-one patch that stood here is
+      # gone. The exported diagonal IS 1 since T1-07, so the special case is
+      # dead code, and leaving it is a stale-sentinel trap for the next reader.
+      cluster_matrix[i, j] <- distance_matrix[term_i, term_j]
     }
   }
 

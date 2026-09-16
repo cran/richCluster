@@ -4,14 +4,28 @@
 #' cluster using different p-value types.
 #'
 #' @param cluster_result The result from the clustering function.
-#' @param cluster_num The cluster number to plot.
+#' @param cluster_num The cluster number to plot, as found in `cluster_result$cluster_df$Cluster`.
 #' @param pval_names A list of p-value names to compare.
 #'
 #' @return A plotly object.
 #'
 #' @importFrom igraph as_edgelist graph_from_adjacency_matrix layout_with_fr V
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' g <- compare_network_graphs_plotly(cluster_result, cluster_num = 1,
+#'                                    c("Padj_1", "Padj_2"))
+#' g
+#' }
 #' @export
 compare_network_graphs_plotly <- function(cluster_result, cluster_num, pval_names) {
+
+  # DS-15 (SPEC-RC-011): an unknown id selected no terms, so the graph came back
+  # empty behind a pair of "no non-missing arguments to min" warnings and never
+  # errored.  The sibling surfaces cluster_network() / cluster_correlation_hmap()
+  # already guard this (DS-05, SPEC-RC-010).
+  validate_cluster_ids(cluster_num, cluster_result$cluster_df$Cluster, "cluster_num")
 
   # Get all pvals to find global scale
   all_pvals <- list()

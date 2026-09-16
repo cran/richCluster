@@ -1,8 +1,8 @@
 Type: Package
 Package: richCluster
 Title: Fast, Robust Clustering Algorithms for Gene Enrichment Data
-Version: 1.0.2
-Date: 2025-12-12
+Version: 2.0.0
+Date: 2026-09-15
 Authors@R: c(
     person("Junguk", "Hur", , "hurlabshared@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0736-2149")),
@@ -10,25 +10,33 @@ Authors@R: c(
     person("Jane", "Kim", role = "aut")
   )
 Maintainer: Junguk Hur <hurlabshared@gmail.com>
-Description: Fast 'C++' agglomerative hierarchical clustering 
-	algorithm packaged into easily callable R functions, designed 
-	to help cluster biological terms based on how
-    similar of genes are expressed in their activation.
+Description: Clusters functionally related biological terms from gene set
+    enrichment results. Terms are compared by the overlap of their gene
+    sets using Cohen's kappa, the Jaccard index, or the Dice coefficient,
+    and the resulting similarity matrix is grouped either by agglomerative
+    hierarchical clustering with single, complete, average, or Ward
+    linkage, or by the seed-and-merge procedure of the 'DAVID' functional
+    classification tool. The distance and clustering routines are written
+    in 'C++' for speed. The methods are described in Huang et al. (2007)
+    <doi:10.1186/gb-2007-8-9-r183>, Ward (1963)
+    <doi:10.1080/01621459.1963.10500845>, Cohen (1960)
+    <doi:10.1177/001316446002000104>, and Jaccard (1912)
+    <doi:10.1111/j.1469-8137.1912.tb05611.x>.
 License: GPL-3
 Depends: R (>= 3.5.0)
-Imports: dplyr, fields, heatmaply, igraph, iheatmapr, magrittr,
-        networkD3, plotly, Rcpp (>= 1.0.14), stats, tidyr, viridis
+Imports: dplyr, fields, heatmaply, igraph, magrittr, networkD3, plotly,
+        Rcpp (>= 1.0.14), stats, tidyr, viridis
 Suggests: devtools, knitr, rmarkdown, roxygen2, testthat
 LinkingTo: Rcpp
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 URL: https://github.com/hurlab/richCluster
 BugReports: https://github.com/hurlab/richCluster/issues
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: yes
-Packaged: 2025-12-13 16:02:22 UTC; juhur
+Packaged: 2026-09-16 20:23:18 UTC; juhur
 Author: Junguk Hur [aut, cre] (ORCID: <https://orcid.org/0000-0002-0736-2149>),
   Sarah Hong [aut],
   Jane Kim [aut]
 Repository: CRAN
-Date/Publication: 2025-12-18 14:30:02 UTC
+Date/Publication: 2026-09-16 23:30:15 UTC

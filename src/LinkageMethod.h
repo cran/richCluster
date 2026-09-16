@@ -8,13 +8,13 @@
 #ifndef LinkageMethod_h
 #define LinkageMethod_h
 
-#include <unordered_set>
+#include <set>
 #include <string>
 #include <functional>
 
 class LinkageMethod {
 public:
-  using Cluster = std::unordered_set<int>;
+  using Cluster = std::set<int>;   // C9: must match ClusterList::Cluster (see there)
   LinkageMethod(std::string linkageMethod, double linkageCutoff, std::function<double(int, int)> distFn):
     method(linkageMethod), cutoff(linkageCutoff), distFct(distFn) {};
   double computeLinkage(

@@ -7,9 +7,23 @@ NULL
 #'
 #' @param cluster_result Cluster result named list from richCluster::cluster()
 #' @return An interactive networkD3 network graph.
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' fnet <- full_network(cluster_result)
+#' fnet
+#' }
 #' @export
 full_network <- function(cluster_result) {
-  distance_matrix = cluster_result$distance_matrix
+  distance_matrix <- cluster_result$distance_matrix
+  # DS-09 (SPEC-RC-010): self-pairs carry no network information. Zero the
+  # diagonal POSITIONALLY, never by matching a sentinel value: the diagonal
+  # held the same-term sentinel before SPEC-RC-007 T1-07 and holds 1 after,
+  # and neither may become a self-loop. Then clamp negative similarities to
+  # 0, consistent with compare_network_graphs_plotly.R.
+  diag(distance_matrix) <- 0
+  distance_matrix[distance_matrix < 0] <- 0
   # Create an igraph object from the distance matrix
   g <- igraph::graph_from_adjacency_matrix(distance_matrix, mode="undirected", weighted=TRUE)
   term_names <- rownames(distance_matrix)

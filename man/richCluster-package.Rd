@@ -22,6 +22,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Junguk Hur \email{hurlabshared@gmail.com} (\href{https://orcid.org/0000-0002-0736-2149}{ORCID})
   \item Sarah Hong
   \item Jane Kim
 }

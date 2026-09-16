@@ -9,7 +9,10 @@ term_dot(cluster_result, cluster = 1, value_type = "Padj", title = NULL)
 \arguments{
 \item{cluster_result}{A result list returned from \code{\link{cluster}}.}
 
-\item{cluster}{Cluster ID (numeric) or term name (character) to plot.}
+\item{cluster}{A single cluster ID (numeric) or term name (character) to plot.
+A numeric ID must appear in \code{cluster_df$Cluster}. A term name must belong to
+exactly one cluster; a term shared by several clusters is ambiguous here and is
+rejected, naming the clusters it belongs to so one can be passed instead.}
 
 \item{value_type}{The name of the value column to visualize (e.g., "Padj" or "Pvalue").}
 

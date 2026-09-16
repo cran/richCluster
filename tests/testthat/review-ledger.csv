@@ -1,0 +1,12 @@
+wave,finding_id,reviewer,severity,verdict,status,resolved_by,summary
+0,B1,B,major,NEEDS REVISION,CLOSED,SPEC-RC-005,"T3-04 harness that fails to compile SKIPS instead of failing; the instrument silently disappears"
+0,A1,A,major,NEEDS REVISION,CLOSED,SPEC-RC-005,"rc_emit ships 4 args (tag object entry_point overwrite); the lost plan specified 2"
+0,A2,A,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"NEWS.md jaccard rationale says 'could never reach 0.5' but Dice/2 equals exactly 0.5; the barrier is the strict > at src/RichCluster.cpp:128"
+0,A3,A,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"cran-comments.md placeholder attributes itself to T3-16; T3-09 owns that file"
+0,A4,A,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"a reported md5 does not reproduce because the digest's input expression was never named"
+0,A5,A,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"rc_david_fixture() hard-stops when fixtures are absent; resolved as CORRECT because SPEC-RC-004 makes absence unreachable"
+0,A6,A,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"the NEWS.md disclosure assertion lives outside the package so nothing enforces it"
+0,A7,A,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"the tag registry admits v102-*-dice-* but dice does not exist in the stock 1.0.2 build"
+0,B2,B,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"helper-characterization.R is outside the item's declared files list"
+0,B3,B,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"artifact records claim a stock 1.0.2 build in prose while recording package_version 1.1.0"
+0,B4,B,minor,NEEDS REVISION,CLOSED,SPEC-RC-005,"the stated stock jaccard value of 0.1 is wrong; the measured value is 0.2"

@@ -11,6 +11,23 @@ na_to_zero <- function(x) {
   return(x)
 }
 
+# Guard for a user-supplied cluster id.  Adopts the DS-05 (SPEC-RC-010) pattern
+# already carried by cluster_correlation_hmap() / cluster_network(): name the
+# cluster by ID, and fail loudly when the ID names nothing.  `arg_name` is the
+# caller's own parameter name so the message points at what the user typed.
+validate_cluster_ids <- function(ids, valid_ids, arg_name) {
+  valid_ids <- sort(unique(valid_ids))
+  unknown <- setdiff(ids, valid_ids)
+  if (length(unknown) > 0) {
+    stop(sprintf(
+      "%s %s does not match any cluster id in cluster_df$Cluster (valid ids: %s)",
+      arg_name,
+      paste(unknown, collapse = ", "),
+      paste(valid_ids, collapse = ", ")))
+  }
+  invisible(ids)
+}
+
 # create a heatmap with all clusters
 
 #' Create a Heatmap of Clustered Enrichment Results
@@ -37,11 +54,20 @@ na_to_zero <- function(x) {
 #' The -log10 transformation is applied, and infinite values are replaced with 0.
 #'
 #' Representative terms are selected by choosing the term with the lowest
-#' `value_type` in each cluster.
+#' `value_type` in each cluster.  Where two clusters share a representative
+#' term, both rows are labelled `<term> (cluster <id>)` so every row label is
+#' unique.
 #'
 #' The final heatmap is generated using `heatmaply::heatmaply()`, with
 #' an interactive `plotly` visualization.
 #'
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' chmap <- cluster_hmap(cluster_result)
+#' chmap
+#' }
 #' @export
 cluster_hmap <- function(cluster_result, clusters=NULL, value_type="Padj", aggr_type=mean){
   # the hmap processing flow
@@ -58,15 +84,22 @@ cluster_hmap <- function(cluster_result, clusters=NULL, value_type="Padj", aggr_
     mutate(across(where(is.numeric), function(x) ifelse(is.infinite(x), 0, x))) %>%
     as.matrix()
 
-  # representative term making
-  # use the Pvalue/Padj average column
-  representative_terms <- cluster_df %>%
-    group_by(Cluster) %>%
-    filter(value_type==min(value_type, na.rm=TRUE)) %>%
-    slice(1) %>%
-    ungroup %>%
-    pull(Term)
-  rownames(hmap_matrix) <- representative_terms
+  # representative term making: minimum of the merged value_type column.
+  # DS-06 (SPEC-RC-010): the old dplyr filter compared the argument string to
+  # itself and was a no-op.
+  reps <- get_representative_terms(cluster_df, value_type)
+  # names() are the cluster ids in ascending order, the same order the
+  # group_by(Cluster) summarise above put the rows in.
+  cluster_ids <- names(reps)
+  row_names <- unname(reps)
+  # Two clusters can share a representative term, and on the shipped example
+  # object two pairs do.  Label those rows with their cluster id so every row
+  # label is unique and says which cluster it belongs to -- heatmaply would
+  # otherwise prefix the duplicates with numbers and warn.  This is the
+  # treatment term_hmap() already carries for its own duplicate rows.
+  dup <- duplicated(row_names) | duplicated(row_names, fromLast = TRUE)
+  row_names[dup] <- sprintf("%s (cluster %s)", row_names[dup], cluster_ids[dup])
+  rownames(hmap_matrix) <- row_names
   colnames(hmap_matrix) <- cluster_result$df_names
 
   # the hmap object
@@ -106,7 +139,7 @@ cluster_hmap <- function(cluster_result, clusters=NULL, value_type="Padj", aggr_
 #'   The data frame must include at least the columns `Cluster`, `Term`, and `Padj_*` values.
 #' @param clusters Optional. A numeric vector specifying the cluster numbers to display,
 #'   or a character vector specifying terms whose clusters should be included. Defaults to `NULL`,
-#'   which includes all clusters.
+#'   which includes all clusters. Numeric ids must appear in `cluster_df$Cluster`.
 #' @param terms Optional. A character vector specifying additional terms to include in the heatmap.
 #'   Defaults to `NULL`.
 #' @param value_type A character string specifying the column name prefix for adjusted p-values.
@@ -128,8 +161,18 @@ cluster_hmap <- function(cluster_result, clusters=NULL, value_type="Padj", aggr_
 #' The resulting heatmap is generated using `heatmaply::heatmaply()` with fixed row ordering
 #' (no hierarchical clustering).
 #'
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' # All arguments after cluster_result have defaults; passing clusters
+#' # restricts the heatmap to those cluster ids.
+#' thmap <- term_hmap(cluster_result, clusters = c(1, 2))
+#' thmap
+#' }
 #' @export
-term_hmap <- function(cluster_result, clusters, terms, value_type, aggr_type, title=NULL) {
+term_hmap <- function(cluster_result, clusters=NULL, terms=NULL, value_type="Padj",
+                      aggr_type=mean, title=NULL) {
 
   cluster_df <- cluster_result$cluster_df
 
@@ -144,6 +187,13 @@ term_hmap <- function(cluster_result, clusters, terms, value_type, aggr_type, ti
       filter(Term %in% clusters) %>%
       pull(Cluster) %>%
       unique()
+  } else if (is.numeric(clusters)) {
+    # DS-14 (SPEC-RC-011): the numeric branch the stop() below already advertised
+    # as valid was never written, so every numeric id fell through to it.
+    clusters <- unique(clusters)
+    # DS-15 (SPEC-RC-011): an unknown id would otherwise select nothing and draw
+    # an empty heatmap.
+    validate_cluster_ids(clusters, cluster_df$Cluster, "clusters")
   } else {
     stop("`clusters` must be either numeric (cluster #s) or character (term names).")
   }
@@ -181,6 +231,12 @@ term_hmap <- function(cluster_result, clusters, terms, value_type, aggr_type, ti
   # keep these vars for labeling
   cluster_annots <- hmap_matrix$Cluster
   row_names <- hmap_matrix$Term
+  # A term that sits in several of the selected clusters appears once per
+  # cluster (clusters may overlap).  Label those rows with their cluster id so
+  # every row label is unique and says which copy it is -- heatmaply would
+  # otherwise prefix duplicates with numbers and warn.
+  dup <- duplicated(row_names) | duplicated(row_names, fromLast = TRUE)
+  row_names[dup] <- sprintf("%s (cluster %s)", row_names[dup], cluster_annots[dup])
 
   hmap_matrix <- hmap_matrix %>%
     ungroup() %>%
@@ -191,33 +247,30 @@ term_hmap <- function(cluster_result, clusters, terms, value_type, aggr_type, ti
 
   # generate default title if none supplied
   if (is.null(title)) {
-    cluster_str <- paste(final_terms, ', ')
     title <- paste0("-log10(", value_type, ")")
   }
 
-  h <- iheatmapr::main_heatmap(
+  # C8 (converge ledger, session 2026-09-04): drawn with heatmaply, like the
+  # other five plotting functions.  iheatmapr vendored its own copy of
+  # plotly.js into every page that held this figure, so the vignette carried
+  # plotly.js twice (1,084,588 of workflow.html's 7,548,867 bytes).  Same
+  # matrix, same labels; the cluster ids become a colour strip with its own
+  # legend in place of iheatmapr's row annotation.
+  cluster_levels <- sort(unique(cluster_annots))
+  h <- heatmaply::heatmaply(
     hmap_matrix,
-    name=paste0("-log10(", value_type, ")")
-  ) %>%
-    iheatmapr::add_row_title("Term") %>%
-    iheatmapr::add_col_title(title, side=c("top")) %>%
-    iheatmapr::add_col_title("Enrichment Result", side=c("bottom")) %>%
-    iheatmapr::add_row_annotation(data.frame("Cluster"=cluster_annots))
-
-
-  # h <- heatmaply::heatmaply(
-  #   hmap_matrix,
-  #   xlab = "Enrichment Result",
-  #   ylab = "Term",
-  #   main = paste0("-log10(", value_type, ")"),
-  #   colors = viridis::viridis(256),
-  #   row_side_colors = cluster_annots,
-  #   row_text_angle = 0,
-  #   margins = c(60, 120, 40, 10),
-  #   plot_method = "plotly",
-  #   colorbar_title = paste0("-log10(", value_type, ")"),
-  #   cluster_rows=FALSE, cluster_cols=FALSE,
-  #   Rowv=FALSE, Colv=FALSE,
-  # )
+    xlab = "Enrichment Result",
+    ylab = "Term",
+    main = title,
+    colors = viridis::viridis(256),
+    na.value = "grey",
+    row_side_colors = data.frame(Cluster = factor(cluster_annots, levels = cluster_levels)),
+    row_text_angle = 0,
+    margins = c(60, 120, 40, 10),
+    plot_method = "plotly",
+    colorbar_title = paste0("-log10(", value_type, ")"),
+    cluster_rows = FALSE, cluster_cols = FALSE,
+    Rowv = FALSE, Colv = FALSE
+  )
   return(h)
 }

@@ -15,3 +15,11 @@ An interactive networkD3 network graph.
 \description{
 This function generates a network graph for the entire distance matrix.
 }
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+fnet <- full_network(cluster_result)
+fnet
+}
+}

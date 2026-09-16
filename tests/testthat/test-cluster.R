@@ -19,7 +19,7 @@ test_that("cluster_correlation_hmap returns heatmaply object", {
   h <- cluster_correlation_hmap(
     cluster_result$final_clusters,
     cluster_result$distance_matrix,
-    1,
+    cluster_result$final_clusters$Cluster[1],
     cluster_result$merged_df
   )
   expect_true("plotly" %in% class(h))
@@ -30,7 +30,7 @@ test_that("cluster_network returns htmlwidget", {
   n <- cluster_network(
     cluster_result$final_clusters,
     cluster_result$distance_matrix,
-    1,
+    cluster_result$final_clusters$Cluster[1],
     cluster_result$merged_df
   )
   expect_true("htmlwidget" %in% class(n))

@@ -7,14 +7,24 @@
 filter_clusters(all_clusters, min_terms)
 }
 \arguments{
-\item{all_clusters}{A dataframe containing the merged seeds with column named `ClusterIndices`.}
+\item{all_clusters}{A dataframe containing the merged seeds with column named \code{ClusterIndices}.}
 
 \item{min_terms}{An integer specifying the minimum number of terms required in a cluster.}
 }
 \value{
-The filtered data frame with clusters filtered to include only those with at least `min_terms` terms.
+The filtered data frame with clusters filtered to include only those with at least \code{min_terms} terms.
 }
 \description{
 Filters the full list of clusters by keeping only those with greater
 than or equal to min_terms # of terms.
+}
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+# Keep only clusters carrying at least 10 terms.
+kept <- filter_clusters(cluster_result$all_clusters, min_terms = 10)
+nrow(cluster_result$all_clusters)
+nrow(kept)
+}
 }

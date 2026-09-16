@@ -3,15 +3,32 @@
 #' This function visualizes a single cluster as a network graph.
 #'
 #' @param cluster_result The result from the clustering function.
-#' @param cluster_num The cluster number to plot.
+#' @param cluster_num The cluster number to plot, as found in `cluster_result$cluster_df$Cluster`.
 #' @param distance_matrix The distance matrix used for clustering.
 #' @param valuetype_list A list of value types (e.g., "Pvalue_1", "Padj_1") to use for node coloring.
 #'
-#' @return A plot object.
+#' @return `NULL`, invisibly.  Called for its side effect: the network graph
+#'   and its colour legend are drawn on the current graphics device.
 #'
 #' @importFrom igraph graph_from_adjacency_matrix
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' # valuetype_list names the per-dataset significance columns to colour by.
+#' g <- plot_network_graph(cluster_result, cluster_num = 1,
+#'                         cluster_result$distance_matrix,
+#'                         c("Padj_1", "Padj_2"))
+#' g
+#' }
 #' @export
 plot_network_graph <- function(cluster_result, cluster_num, distance_matrix, valuetype_list) {
+
+  # DS-15 (SPEC-RC-011): an unknown id selected no terms, and the empty case then
+  # died downstream on `node_colors[[0]] <- ...` rather than saying what was
+  # wrong.  The sibling surfaces cluster_network() / cluster_correlation_hmap()
+  # already guard this (DS-05, SPEC-RC-010).
+  validate_cluster_ids(cluster_num, cluster_result$cluster_df$Cluster, "cluster_num")
 
   term_names <- cluster_result$cluster_df$Term[cluster_result$cluster_df$Cluster == cluster_num]
 
@@ -29,7 +46,11 @@ plot_network_graph <- function(cluster_result, cluster_num, distance_matrix, val
 
   node_colors_list <- list()
 
-  for (i in 1:num_datasets) {
+  # DS-16 (SPEC-RC-011): every loop below counted with 1:length(x) / 1:n, which
+  # iterates c(1, 0) when x is empty -- an empty valuetype_list or an empty
+  # term_names then indexed element 0 instead of skipping the loop.  seq_len /
+  # seq_along yield the empty sequence and the loop is simply not entered.
+  for (i in seq_len(num_datasets)) {
     pval <- value_list[[i]]
     color_for_nodes <- rep("grey", length(pval))
 
@@ -48,18 +69,18 @@ plot_network_graph <- function(cluster_result, cluster_num, distance_matrix, val
   }
 
   node_colors <- list()
-  for (i in 1:length(term_names)) {
+  for (i in seq_along(term_names)) {
     node_color_pieces <- c()
-    for (j in 1:num_datasets) {
+    for (j in seq_len(num_datasets)) {
       node_color_pieces <- c(node_color_pieces, node_colors_list[[j]][i])
     }
     node_colors[[i]] <- node_color_pieces
   }
 
   vertex_pie <- list()
-  for (i in 1:length(term_names)) {
+  for (i in seq_along(term_names)) {
     proportions <- c()
-    for (j in 1:num_datasets) {
+    for (j in seq_len(num_datasets)) {
       proportions <- c(proportions, value_list[[j]][i])
     }
     proportions[is.na(proportions)] <- 0

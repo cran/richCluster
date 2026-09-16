@@ -32,6 +32,8 @@ private:
                   int totalGeneCount);
   double getJaccard(const std::unordered_set<std::string>& t1_genes,
                     const std::unordered_set<std::string>& t2_genes);
+  double getDice(const std::unordered_set<std::string>& t1_genes,
+                 const std::unordered_set<std::string>& t2_genes);
 };
 
 #endif /* DistanceMetric_h */

@@ -11,6 +11,16 @@ NULL
 #' @param cluster_result The cluster_result object from cluster()
 #'
 #' @returns A data.frame view of the clustering
+#' @examples
+#' \donttest{
+#' cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+#'                                       package = "richCluster"))
+#' # A flat, sharable table: one row per term, cluster ids resolved to the
+#' # most significant term in each cluster.
+#' flat <- export_df(cluster_result)
+#' dim(flat)
+#' head(flat[, 1:3])
+#' }
 #' @export
 export_df <- function(cluster_result) {
   cluster_df <- cluster_result$cluster_df

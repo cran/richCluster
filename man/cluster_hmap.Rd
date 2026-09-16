@@ -12,21 +12,21 @@ cluster_hmap(
 )
 }
 \arguments{
-\item{cluster_result}{A list containing a data frame (`cluster_df`) with clustering results.
-The data frame must contain at least the columns `Cluster`, `Term`, and `value_type_*` values.}
+\item{cluster_result}{A list containing a data frame (\code{cluster_df}) with clustering results.
+The data frame must contain at least the columns \code{Cluster}, \code{Term}, and \verb{value_type_*} values.}
 
 \item{clusters}{Optional. A numeric or character vector specifying the clusters to include.
 If NULL (default), all clusters are included.}
 
 \item{value_type}{A character string specifying the column name prefix for values to display in hmap cells.
-Defaults to `"Padj"`.}
+Defaults to \code{"Padj"}.}
 
-\item{aggr_type}{A function used to aggregate values across clusters (e.g., `mean` or `median`).
-Defaults to `mean`.}
+\item{aggr_type}{A function used to aggregate values across clusters (e.g., \code{mean} or \code{median}).
+Defaults to \code{mean}.}
 }
 \value{
-An interactive heatmap object (`plotly`), displaying the -log10(Padj) values
-  across clusters, with representative terms as row labels.
+An interactive heatmap object (\code{plotly}), displaying the -log10(Padj) values
+across clusters, with representative terms as row labels.
 }
 \description{
 Generates an interactive heatmap from the given clustering results,
@@ -34,13 +34,23 @@ visualizing -log10(Padj) values for each cluster. The function aggregates
 values per cluster and assigns representative terms as row names.
 }
 \details{
-The function processes the given cluster data frame (`cluster_df`),
-aggregating the `value_type_*` values per cluster using the specified `aggr_type` function.
+The function processes the given cluster data frame (\code{cluster_df}),
+aggregating the \verb{value_type_*} values per cluster using the specified \code{aggr_type} function.
 The -log10 transformation is applied, and infinite values are replaced with 0.
 
 Representative terms are selected by choosing the term with the lowest
-`value_type` in each cluster.
+\code{value_type} in each cluster.  Where two clusters share a representative
+term, both rows are labelled \verb{<term> (cluster <id>)} so every row label is
+unique.
 
-The final heatmap is generated using `heatmaply::heatmaply()`, with
-an interactive `plotly` visualization.
+The final heatmap is generated using \code{heatmaply::heatmaply()}, with
+an interactive \code{plotly} visualization.
+}
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+chmap <- cluster_hmap(cluster_result)
+chmap
+}
 }

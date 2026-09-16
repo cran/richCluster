@@ -10,7 +10,8 @@ david_cluster(
   similarity_threshold = 0.5,
   initial_group_membership = 3,
   final_group_membership = 3,
-  multiple_linkage_threshold = 0.5
+  multiple_linkage_threshold = 0.5,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -18,15 +19,25 @@ david_cluster(
 Each dataframe should include at least the columns 'Term', 'GeneID', and 'Padj'.}
 
 \item{df_names}{Optional, a character vector of names for the enrichment result dataframes. Must
-match the length of `enrichment_results`. Default is `NULL`.}
+match the length of \code{enrichment_results}. Default is \code{NULL}.}
 
-\item{similarity_threshold}{A numeric value for the kappa score cutoff (0 < cutoff <= 1).}
+\item{similarity_threshold}{A numeric value for the kappa score cutoff (0 < cutoff <= 1).
+The comparison is STRICT: a pair counts as similar when its kappa is
+greater than the threshold, not when it equals it.}
 
 \item{initial_group_membership}{Minimum number of terms to form an initial seed group.}
 
 \item{final_group_membership}{Minimum number of terms for a final cluster.}
 
-\item{multiple_linkage_threshold}{A numeric value for the merging threshold.}
+\item{multiple_linkage_threshold}{A numeric value for the merging threshold.
+The comparison is STRICT: groups merge when their shared fraction is
+greater than the threshold, not when it equals it.}
+
+\item{verbose}{Logical; print the C++ core's progress narration to the
+console. Default \code{FALSE} --- the core runs silent. Before 2.0.0 this
+narration was unconditional and could not be switched off, and it
+scales with the data (one line per merge iteration), so it is now
+opt-in.}
 }
 \value{
 A named list containing the clustering results.
@@ -34,4 +45,18 @@ A named list containing the clustering results.
 \description{
 This function performs clustering on enrichment results using an algorithm
 inspired by DAVID's functional clustering method.
+}
+\examples{
+\donttest{
+# A small two-dataset input.  The shipped data is far larger, and an example
+# that runs during R CMD check should stay quick.
+terms <- sprintf("TERM_\%02d", 1:12)
+genes <- vapply(1:12, function(i) paste0("G", i:(i + 4), collapse = ","),
+                character(1))
+d1 <- data.frame(Term = terms, GeneID = genes,
+                 Pvalue = 1e-5, Padj = 1e-4, stringsAsFactors = FALSE)
+d2 <- d1
+res <- david_cluster(list(d1, d2), similarity_threshold = 0.5)
+names(res)
+}
 }

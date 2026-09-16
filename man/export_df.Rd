@@ -15,3 +15,14 @@ A data.frame view of the clustering
 \description{
 Returns a comprehensive dataframe containing all the different terms in all clusters.
 }
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+# A flat, sharable table: one row per term, cluster ids resolved to the
+# most significant term in each cluster.
+flat <- export_df(cluster_result)
+dim(flat)
+head(flat[, 1:3])
+}
+}

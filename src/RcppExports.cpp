@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // runDavidClustering
-Rcpp::List runDavidClustering(Rcpp::CharacterVector terms, Rcpp::CharacterVector geneIDs, double similarityThreshold, int initialGroupMembership, int finalGroupMembership, double multipleLinkageThreshold);
-RcppExport SEXP _richCluster_runDavidClustering(SEXP termsSEXP, SEXP geneIDsSEXP, SEXP similarityThresholdSEXP, SEXP initialGroupMembershipSEXP, SEXP finalGroupMembershipSEXP, SEXP multipleLinkageThresholdSEXP) {
+Rcpp::List runDavidClustering(Rcpp::CharacterVector terms, Rcpp::CharacterVector geneIDs, double similarityThreshold, int initialGroupMembership, int finalGroupMembership, double multipleLinkageThreshold, bool verbose);
+RcppExport SEXP _richCluster_runDavidClustering(SEXP termsSEXP, SEXP geneIDsSEXP, SEXP similarityThresholdSEXP, SEXP initialGroupMembershipSEXP, SEXP finalGroupMembershipSEXP, SEXP multipleLinkageThresholdSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,13 +22,31 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type initialGroupMembership(initialGroupMembershipSEXP);
     Rcpp::traits::input_parameter< int >::type finalGroupMembership(finalGroupMembershipSEXP);
     Rcpp::traits::input_parameter< double >::type multipleLinkageThreshold(multipleLinkageThresholdSEXP);
-    rcpp_result_gen = Rcpp::wrap(runDavidClustering(terms, geneIDs, similarityThreshold, initialGroupMembership, finalGroupMembership, multipleLinkageThreshold));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(runDavidClustering(terms, geneIDs, similarityThreshold, initialGroupMembership, finalGroupMembership, multipleLinkageThreshold, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
+// runDavidClusteringWithKappa
+Rcpp::List runDavidClusteringWithKappa(Rcpp::CharacterVector terms, Rcpp::CharacterVector geneIDs, double similarityThreshold, int initialGroupMembership, int finalGroupMembership, double multipleLinkageThreshold, bool verbose);
+RcppExport SEXP _richCluster_runDavidClusteringWithKappa(SEXP termsSEXP, SEXP geneIDsSEXP, SEXP similarityThresholdSEXP, SEXP initialGroupMembershipSEXP, SEXP finalGroupMembershipSEXP, SEXP multipleLinkageThresholdSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type terms(termsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type geneIDs(geneIDsSEXP);
+    Rcpp::traits::input_parameter< double >::type similarityThreshold(similarityThresholdSEXP);
+    Rcpp::traits::input_parameter< int >::type initialGroupMembership(initialGroupMembershipSEXP);
+    Rcpp::traits::input_parameter< int >::type finalGroupMembership(finalGroupMembershipSEXP);
+    Rcpp::traits::input_parameter< double >::type multipleLinkageThreshold(multipleLinkageThresholdSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(runDavidClusteringWithKappa(terms, geneIDs, similarityThreshold, initialGroupMembership, finalGroupMembership, multipleLinkageThreshold, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // runRichCluster
-Rcpp::List runRichCluster(Rcpp::CharacterVector terms, Rcpp::CharacterVector geneIDs, std::string distanceMetric, double distanceCutoff, std::string linkageMethod, double linkageCutoff);
-RcppExport SEXP _richCluster_runRichCluster(SEXP termsSEXP, SEXP geneIDsSEXP, SEXP distanceMetricSEXP, SEXP distanceCutoffSEXP, SEXP linkageMethodSEXP, SEXP linkageCutoffSEXP) {
+Rcpp::List runRichCluster(Rcpp::CharacterVector terms, Rcpp::CharacterVector geneIDs, std::string distanceMetric, double distanceCutoff, std::string linkageMethod, double linkageCutoff, std::string geneDelim, bool verbose);
+RcppExport SEXP _richCluster_runRichCluster(SEXP termsSEXP, SEXP geneIDsSEXP, SEXP distanceMetricSEXP, SEXP distanceCutoffSEXP, SEXP linkageMethodSEXP, SEXP linkageCutoffSEXP, SEXP geneDelimSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -38,14 +56,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type distanceCutoff(distanceCutoffSEXP);
     Rcpp::traits::input_parameter< std::string >::type linkageMethod(linkageMethodSEXP);
     Rcpp::traits::input_parameter< double >::type linkageCutoff(linkageCutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(runRichCluster(terms, geneIDs, distanceMetric, distanceCutoff, linkageMethod, linkageCutoff));
+    Rcpp::traits::input_parameter< std::string >::type geneDelim(geneDelimSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(runRichCluster(terms, geneIDs, distanceMetric, distanceCutoff, linkageMethod, linkageCutoff, geneDelim, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_richCluster_runDavidClustering", (DL_FUNC) &_richCluster_runDavidClustering, 6},
-    {"_richCluster_runRichCluster", (DL_FUNC) &_richCluster_runRichCluster, 6},
+    {"_richCluster_runDavidClustering", (DL_FUNC) &_richCluster_runDavidClustering, 7},
+    {"_richCluster_runDavidClusteringWithKappa", (DL_FUNC) &_richCluster_runDavidClusteringWithKappa, 7},
+    {"_richCluster_runRichCluster", (DL_FUNC) &_richCluster_runRichCluster, 8},
     {NULL, NULL, 0}
 };
 

@@ -4,30 +4,37 @@
 \alias{term_hmap}
 \title{Generate a Heatmap of Enrichment Results for Specific Clusters and Terms}
 \usage{
-term_hmap(cluster_result, clusters, terms, value_type, aggr_type, title = NULL)
+term_hmap(
+  cluster_result,
+  clusters = NULL,
+  terms = NULL,
+  value_type = "Padj",
+  aggr_type = mean,
+  title = NULL
+)
 }
 \arguments{
-\item{cluster_result}{A list containing a data frame (`cluster_df`) with clustering results.
-The data frame must include at least the columns `Cluster`, `Term`, and `Padj_*` values.}
+\item{cluster_result}{A list containing a data frame (\code{cluster_df}) with clustering results.
+The data frame must include at least the columns \code{Cluster}, \code{Term}, and \verb{Padj_*} values.}
 
 \item{clusters}{Optional. A numeric vector specifying the cluster numbers to display,
-or a character vector specifying terms whose clusters should be included. Defaults to `NULL`,
-which includes all clusters.}
+or a character vector specifying terms whose clusters should be included. Defaults to \code{NULL},
+which includes all clusters. Numeric ids must appear in \code{cluster_df$Cluster}.}
 
 \item{terms}{Optional. A character vector specifying additional terms to include in the heatmap.
-Defaults to `NULL`.}
+Defaults to \code{NULL}.}
 
 \item{value_type}{A character string specifying the column name prefix for adjusted p-values.
-Defaults to `"Padj"`.}
+Defaults to \code{"Padj"}.}
 
-\item{aggr_type}{A function used to aggregate values across clusters (e.g., `mean` or `median`).
-Defaults to `mean`.}
+\item{aggr_type}{A function used to aggregate values across clusters (e.g., \code{mean} or \code{median}).
+Defaults to \code{mean}.}
 
 \item{title}{An optional parameter to title the plot something else.}
 }
 \value{
-An interactive heatmap object (`plotly`), displaying the -log10(Padj) values
-  across clusters, with representative terms as row labels and color-coded cluster annotations.
+An interactive heatmap object (\code{plotly}), displaying the -log10(Padj) values
+across clusters, with representative terms as row labels and color-coded cluster annotations.
 }
 \description{
 Creates an interactive heatmap displaying -log10(Padj) values for selected clusters
@@ -36,12 +43,22 @@ The function ensures that the final heatmap includes all terms from the selected
 as well as any explicitly provided terms.
 }
 \details{
-The function processes the given `cluster_df`, identifying the clusters and terms to be visualized.
-If `clusters` is specified as a numeric vector, the function directly filters based on cluster numbers.
-If `clusters` is given as a character vector, it identifies the clusters associated with those terms
+The function processes the given \code{cluster_df}, identifying the clusters and terms to be visualized.
+If \code{clusters} is specified as a numeric vector, the function directly filters based on cluster numbers.
+If \code{clusters} is given as a character vector, it identifies the clusters associated with those terms
 and retrieves all terms from the selected clusters.
 
-The `Padj_*` values are transformed using `-log10()`, and infinite values are replaced with `0`.
-The resulting heatmap is generated using `heatmaply::heatmaply()` with fixed row ordering
+The \verb{Padj_*} values are transformed using \code{-log10()}, and infinite values are replaced with \code{0}.
+The resulting heatmap is generated using \code{heatmaply::heatmaply()} with fixed row ordering
 (no hierarchical clustering).
+}
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+# All arguments after cluster_result have defaults; passing clusters
+# restricts the heatmap to those cluster ids.
+thmap <- term_hmap(cluster_result, clusters = c(1, 2))
+thmap
+}
 }

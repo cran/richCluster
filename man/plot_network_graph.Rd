@@ -14,15 +14,27 @@ plot_network_graph(
 \arguments{
 \item{cluster_result}{The result from the clustering function.}
 
-\item{cluster_num}{The cluster number to plot.}
+\item{cluster_num}{The cluster number to plot, as found in \code{cluster_result$cluster_df$Cluster}.}
 
 \item{distance_matrix}{The distance matrix used for clustering.}
 
 \item{valuetype_list}{A list of value types (e.g., "Pvalue_1", "Padj_1") to use for node coloring.}
 }
 \value{
-A plot object.
+\code{NULL}, invisibly.  Called for its side effect: the network graph
+and its colour legend are drawn on the current graphics device.
 }
 \description{
 This function visualizes a single cluster as a network graph.
+}
+\examples{
+\donttest{
+cluster_result <- readRDS(system.file("extdata", "cluster_result.rds",
+                                      package = "richCluster"))
+# valuetype_list names the per-dataset significance columns to colour by.
+g <- plot_network_graph(cluster_result, cluster_num = 1,
+                        cluster_result$distance_matrix,
+                        c("Padj_1", "Padj_2"))
+g
+}
 }
