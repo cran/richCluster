@@ -7,7 +7,7 @@
 # matrix keeps richCluster::SAME_TERM_DISTANCE, the constant stays in
 # src/RichCluster.h, and tools/cpp-units/rc_cpp_units.cpp's StubMatrix -- which
 # is built around that in-memory convention -- stays valid and untouched, as
-# test-cpp-units.R:24 requires.
+# test-src-cpp-units.R requires.
 #
 # Why 1 (spec.md SS-E.4): the oracle computes kappa(A, A) == 1; Jaccard and Dice
 # self-similarity are 1 by definition; the downstream consumer in

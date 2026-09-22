@@ -117,7 +117,6 @@ RC_WAVE0_MANIFEST <- c(
   "helper-characterization.R",
   "helper-fixture.R",
   "helper-oracle.R",
-  "test-cpp-units.R",
   "test-david-kappa-matrix.R",
   "test-kappa-oracle.R",
   "test-instrument-contracts.R",
@@ -137,7 +136,8 @@ RC_WAVE0_MANIFEST <- c(
 # presence of any test-src-*.R file rather than by probing the very file whose
 # presence is in question.
 RC_WAVE0_MANIFEST_SRC <- c(
-  "test-src-characterization.R"
+  "test-src-characterization.R",
+  "test-src-cpp-units.R"
 )
 
 test_that("B2: every declared Wave-0 instrument file is present", {

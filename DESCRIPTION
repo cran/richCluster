@@ -1,8 +1,8 @@
 Type: Package
 Package: richCluster
 Title: Fast, Robust Clustering Algorithms for Gene Enrichment Data
-Version: 2.0.0
-Date: 2026-09-15
+Version: 2.0.1
+Date: 2026-09-18
 Authors@R: c(
     person("Junguk", "Hur", , "hurlabshared@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0736-2149")),
@@ -34,9 +34,9 @@ URL: https://github.com/hurlab/richCluster
 BugReports: https://github.com/hurlab/richCluster/issues
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: yes
-Packaged: 2026-09-16 20:23:18 UTC; juhur
+Packaged: 2026-09-18 13:43:22 UTC; juhur
 Author: Junguk Hur [aut, cre] (ORCID: <https://orcid.org/0000-0002-0736-2149>),
   Sarah Hong [aut],
   Jane Kim [aut]
 Repository: CRAN
-Date/Publication: 2026-09-16 23:30:15 UTC
+Date/Publication: 2026-09-22 07:50:02 UTC

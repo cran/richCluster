@@ -1,3 +1,7 @@
+# richCluster 2.0.1 (2026-09-18)
+
+* No change to results or to any function. A developer-only C++ unit test, which could not run from the built package because its sources are not shipped, is no longer included in the package.
+
 # richCluster 2.0.0 (2026-09-15)
 
 ## Important: results differ from earlier versions

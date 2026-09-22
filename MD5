@@ -1,6 +1,6 @@
-3932a6a02cb384da70e6ebd537de73ab *DESCRIPTION
+526fe71c5586d7fb8d34edbad228756d *DESCRIPTION
 eb1cc54713b20b779f30a0c23b091d91 *NAMESPACE
-577c70b2f531c50ed6577f3ac139bcc3 *NEWS.md
+a1aa47bc9443a00f0a47bae2294e0043 *NEWS.md
 3b83cc9de37d34f858452b89b9e164ee *R/RcppExports.R
 9c531ae531c14b9cec377ab650ab841d *R/bars.R
 b9cf50d38c12d89f025a4cb3ae7e7918 *R/cluster.R
@@ -20,7 +20,7 @@ fda2a6a7ac9c261211bdfae927dc3e2f *R/richCluster-package.R
 d3e3a4e00fde4592242f0565c8cb1154 *build/vignette.rds
 2ecbc05e914059f7a287dbc55ac88cef *inst/doc/workflow.R
 40c9a4bd5f95d28fed0385cba00eafff *inst/doc/workflow.Rmd
-4f4014ad2e6f2dc315f7dc7cb34b017c *inst/doc/workflow.html
+9655519917e43f0eb770c7e30e498763 *inst/doc/workflow.html
 6865d6fa8f5b4523fc99d8fbc2ebd692 *inst/extdata/HF36wk_vs_HF12wk.txt
 a64932b19d8367fc47473eb8502d54ab *inst/extdata/HF36wk_vs_WT12wk.txt
 401bb8fe05f1b7bb7851051e303da63e *inst/extdata/cluster_result.rds
@@ -74,13 +74,12 @@ c8634f267ae862dfc3ba9480493b298c *tests/testthat/test-c12-canonical-merge-order.
 4745386d0098229ab50763e4d3531ee5 *tests/testthat/test-c9-canonical-order.R
 c0e7dde9b5b7abe379ab78a91630795d *tests/testthat/test-cluster.R
 9d17164586504a69edda41853250ba3e *tests/testthat/test-cpp-entry-guards.R
-d3b96c1593473868f3e06a8ac24ea7a0 *tests/testthat/test-cpp-units.R
 8f34adf95299f3d5e7d279691540af81 *tests/testthat/test-david-fixed-point.R
 0a2d362e4a3bb98757f1426bc82d639d *tests/testthat/test-david-kappa-matrix.R
 31d01b25a46500d5172b294a9c5e9faa *tests/testthat/test-david-validation.R
 5b217fc12d11f89cddb14bf11181fb19 *tests/testthat/test-fixture-generation.R
 0d68f7a801ac589d8d5c01245a95a6e1 *tests/testthat/test-input-hygiene.R
-9652a260f9fe99f92d869e3cd42bf75f *tests/testthat/test-instrument-contracts.R
+c082c05921150fbc45f06114bfd96af0 *tests/testthat/test-instrument-contracts.R
 fa5505c160210784d9f24f89df441af4 *tests/testthat/test-kappa-oracle.R
 d60f0c4171df1338e3ef6864edd60b40 *tests/testthat/test-merge-enrichment-results.R
 3bc883d6bf330c643bee6577b576a062 *tests/testthat/test-news-disclosure.R
@@ -93,7 +92,7 @@ b96db358cb9348c84366b8b79ebf44a7 *tests/testthat/test-return-doc-contract.R
 e46cc7db43a17b126ca1eb85cc5d5219 *tests/testthat/test-shipped-numeric-regression.R
 ea441835ae088c8693ec5c201c0f9c79 *tests/testthat/test-t002-denominator.R
 62e6dce576f5d7da6469658429df94d8 *tests/testthat/test-t006-gene-delim.R
-2ab8e48741bec37ef46f96f26737b802 *tests/testthat/test-t107-diagonal.R
+2f89c67b15161ad2031095acf95a03e0 *tests/testthat/test-t107-diagonal.R
 0d94b97dc4981717a153498de23ca0d5 *tests/testthat/test-t117-filter-on.R
 6387e79cebb6935ad90bc280d4f4e6dd *tests/testthat/test-verbose-flag.R
 40c9a4bd5f95d28fed0385cba00eafff *vignettes/workflow.Rmd
